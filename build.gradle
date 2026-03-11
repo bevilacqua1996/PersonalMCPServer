@@ -24,7 +24,9 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-webclient'
+	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.ai:spring-ai-starter-mcp-server'
+	implementation 'org.springframework.ai:spring-ai-starter-mcp-server-webmvc'
 	testImplementation 'org.springframework.boot:spring-boot-starter-webclient-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }

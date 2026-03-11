@@ -1,3 +1,20 @@
 spring:
   application:
     name: mcpServerPersonal
+  ai:
+    mcp:
+      server:
+        protocol: STREAMABLE
+        name: streamable-mcp-server
+        version: 1.0.0
+        type: SYNC
+        instructions: "This streamable server provides real-time notifications"
+        resource-change-notification: true
+        tool-change-notification: true
+        prompt-change-notification: true
+        streamable-http:
+          mcp-endpoint: /api/mcp
+          keep-alive-interval: 30s
+
+github:
+  token: "TOKEN"
