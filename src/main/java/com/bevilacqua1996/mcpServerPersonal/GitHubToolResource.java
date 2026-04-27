@@ -14,7 +14,6 @@ import jakarta.ws.rs.core.StreamingOutput;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import java.io.IOException;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
