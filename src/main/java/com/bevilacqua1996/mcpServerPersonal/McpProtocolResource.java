@@ -87,13 +87,14 @@ public class McpProtocolResource {
                                                 "additionalProperties", false)),
                                 toolSpec(
                                         "menthoring",
-                                        "Search the Menthoring-Documentation repository by session and keyword",
+                                        "Search the Menthoring-Documentation repository by up to five keywords",
                                         Map.of(
                                                 "type", "object",
                                                 "properties", Map.of(
-                                                        "session", Map.of("type", "string"),
-                                                        "keyword", Map.of("type", "string")),
-                                                "required", List.of("session", "keyword"),
+                                                        "keyWords", Map.of(
+                                                                "type", "array",
+                                                                "items", Map.of("type", "string"))),
+                                                "required", List.of("keyWords"),
                                                 "additionalProperties", false)
                                 )
                         ),
@@ -110,8 +111,9 @@ public class McpProtocolResource {
             case "list-repos" -> resultText = toolResource.listReposBody();
             case "describe-repo" -> resultText = toolResource.describeRepoBody(arguments.path("name").asText(""));
             case "menthoring" -> resultText = toolResource.searchDocumentationBody(
-                    arguments.path("session").asText(""),
-                    arguments.path("keyword").asText(""));
+                    arguments.path("keyWords").isMissingNode() || !arguments.path("keyWords").isArray()
+                            ? List.of()
+                            : toStringList(arguments.path("keyWords")));
             default -> {
                 resultText = "Unknown tool: " + toolName;
                 error = true;
@@ -131,6 +133,14 @@ public class McpProtocolResource {
                 "name", name,
                 "description", description,
                 "inputSchema", inputSchema);
+    }
+
+    private List<String> toStringList(JsonNode arrayNode) {
+        List<String> values = new java.util.ArrayList<>();
+        for (JsonNode item : arrayNode) {
+            values.add(item.asText(""));
+        }
+        return values;
     }
 
     private Response errorResponse(Long id, int code, String message) {

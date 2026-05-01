@@ -18,6 +18,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -74,31 +76,29 @@ public class DocumentationSearchService {
         }
     }
 
-    public DocumentationSearchResult search(String session, String keyword) {
-        String normalizedKeyword = keyword == null ? "" : keyword.trim();
+    public DocumentationSearchResult search(List<String> keyWords) {
+        List<String> normalizedKeywords = normalizeKeywords(keyWords);
         DocumentationCache current = ensureCache();
 
-        if (normalizedKeyword.isEmpty()) {
+        if (normalizedKeywords.isEmpty()) {
             return new DocumentationSearchResult(
-                    session,
-                    normalizedKeyword,
+                    normalizedKeywords,
                     current.defaultBranch(),
                     current.documents().size(),
                     List.of(),
                     current.isReady(),
-                    "Please provide a keyword to orient the search.");
+                    "Please provide at least one keyword to orient the search.");
         }
 
-        List<DocumentationMatch> matches = searchCachedDocumentation(current, normalizedKeyword);
+        List<DocumentationMatch> matches = searchCachedDocumentation(current, normalizedKeywords);
         String message = null;
         if (matches.isEmpty()) {
             message = "No direct keyword matches were found in the documentation.\n"
-                    + "You can try a broader keyword or a related term.";
+                    + "You can try a broader keyword, a related term, or refine the list of up to five keywords.";
         }
 
         return new DocumentationSearchResult(
-                session,
-                normalizedKeyword,
+                normalizedKeywords,
                 current.defaultBranch(),
                 current.documents().size(),
                 matches,
@@ -115,30 +115,55 @@ public class DocumentationSearchService {
         return current;
     }
 
-    private List<DocumentationMatch> searchCachedDocumentation(DocumentationCache current, String keyword) {
-        String keywordLower = keyword.toLowerCase(Locale.ROOT);
-        List<DocumentationMatch> matches = new ArrayList<>();
+    private List<DocumentationMatch> searchCachedDocumentation(DocumentationCache current, List<String> keyWords) {
+        LinkedHashMap<String, DocumentationMatchAccumulator> matches = new LinkedHashMap<>();
 
         for (DocumentationDocument document : current.documents()) {
-            List<String> snippets = extractSnippets(document.content(), keywordLower);
-            if (snippets.isEmpty()) {
-                continue;
-            }
+            for (String keyWord : keyWords) {
+                String keywordLower = keyWord.toLowerCase(Locale.ROOT);
+                List<String> snippets = extractSnippets(document.content(), keywordLower);
+                if (snippets.isEmpty()) {
+                    continue;
+                }
 
-            matches.add(new DocumentationMatch(
-                    document.path(),
-                    document.headings(),
-                    snippets,
-                    countOccurrences(document.content().toLowerCase(Locale.ROOT), keywordLower)));
+                DocumentationMatchAccumulator accumulator = matches.computeIfAbsent(
+                        document.path(),
+                        path -> new DocumentationMatchAccumulator(path, document.headings()));
+                accumulator.addSnippets(snippets);
+                accumulator.addScore(countOccurrences(document.content().toLowerCase(Locale.ROOT), keywordLower));
+            }
         }
 
-        return matches.stream()
+        return matches.values().stream()
+                .map(DocumentationMatchAccumulator::toMatch)
                 .sorted(Comparator
                         .comparingInt(DocumentationMatch::score)
                         .reversed()
                         .thenComparing(DocumentationMatch::path))
                 .limit(10)
                 .collect(Collectors.toList());
+    }
+
+    private List<String> normalizeKeywords(List<String> keyWords) {
+        if (keyWords == null || keyWords.isEmpty()) {
+            return List.of();
+        }
+
+        LinkedHashSet<String> normalized = new LinkedHashSet<>();
+        for (String keyWord : keyWords) {
+            if (keyWord == null) {
+                continue;
+            }
+            String trimmed = keyWord.trim();
+            if (!trimmed.isEmpty()) {
+                normalized.add(trimmed);
+            }
+            if (normalized.size() == 5) {
+                break;
+            }
+        }
+
+        return List.copyOf(normalized);
     }
 
     private String getRepositoryDefaultBranch(String owner, String repository) throws IOException, InterruptedException {
@@ -296,8 +321,7 @@ public class DocumentationSearchService {
     }
 
     public record DocumentationSearchResult(
-            String session,
-            String keyword,
+            List<String> keyWords,
             String defaultBranch,
             int documentationFilesScanned,
             List<DocumentationMatch> matches,
@@ -306,5 +330,33 @@ public class DocumentationSearchService {
     }
 
     public record DocumentationMatch(String path, List<String> headings, List<String> snippets, int score) {
+    }
+
+    private static final class DocumentationMatchAccumulator {
+        private final String path;
+        private final List<String> headings;
+        private final List<String> snippets = new ArrayList<>();
+        private int score;
+
+        private DocumentationMatchAccumulator(String path, List<String> headings) {
+            this.path = path;
+            this.headings = headings;
+        }
+
+        private void addSnippets(List<String> newSnippets) {
+            for (String snippet : newSnippets) {
+                if (!snippets.contains(snippet)) {
+                    snippets.add(snippet);
+                }
+            }
+        }
+
+        private void addScore(int additionalScore) {
+            score += additionalScore;
+        }
+
+        private DocumentationMatch toMatch() {
+            return new DocumentationMatch(path, headings, List.copyOf(snippets), score);
+        }
     }
 }

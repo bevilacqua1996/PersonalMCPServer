@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 @QuarkusTest
 class PersonalMcpServerTest {
@@ -33,7 +34,7 @@ class PersonalMcpServerTest {
 
     @Test
     void documentationSearchStartsEmptyWhenTokenIsNotConfigured() {
-        DocumentationSearchService.DocumentationSearchResult result = documentationSearchService.search("session-1", "quarkus");
+        DocumentationSearchService.DocumentationSearchResult result = documentationSearchService.search(List.of("quarkus"));
 
         assertFalse(result.cacheReady());
         assertTrue(result.message() == null || result.message().contains("No direct keyword matches"));
@@ -55,9 +56,9 @@ class PersonalMcpServerTest {
 
     @Test
     void documentationSearchEndpointReturnsStructuredSummary() throws Exception {
-        String body = readStreamingResponse(toolResource.searchMenthoringDocumentationStreamable("session-1", "quarkus"));
+        String body = readStreamingResponse(toolResource.searchMenthoringDocumentationStreamable(List.of("quarkus")));
 
-        assertTrue(body.contains("Session: session-1"));
+        assertTrue(body.contains("Keywords: quarkus"));
         assertTrue(body.contains("Repository: bevilacqua1996/Menthoring-Documentation"));
     }
 
@@ -86,11 +87,11 @@ class PersonalMcpServerTest {
     @Test
     void mcpToolCallReturnsTextResult() throws Exception {
         String responseBody = readResponse(mcpProtocolResource.handle("""
-                {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"menthoring","arguments":{"session":"session-1","keyword":"quarkus"}}}
+                {"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"menthoring","arguments":{"keyWords":["quarkus"]}}}
                 """));
         JsonNode response = objectMapper.readTree(responseBody);
 
-        assertTrue(response.get("result").get("content").toString().contains("Session: session-1"));
+        assertTrue(response.get("result").get("content").toString().contains("Keywords: quarkus"));
         assertFalse(response.get("result").get("isError").asBoolean());
     }
 

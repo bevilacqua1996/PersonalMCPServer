@@ -21,6 +21,7 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 
 @ApplicationScoped
@@ -61,18 +62,16 @@ public class GitHubToolResource {
     @Path("/tools/documentation/search")
     @Produces(MediaType.TEXT_PLAIN)
     public Response searchMenthoringDocumentationStreamable(
-            @QueryParam("session") String session,
-            @QueryParam("keyword") String keyword) {
-        return streamText(searchDocumentationBody(session, keyword), MediaType.TEXT_PLAIN);
+            @QueryParam("keyWords") List<String> keyWords) {
+        return streamText(searchDocumentationBody(keyWords), MediaType.TEXT_PLAIN);
     }
 
-    String searchDocumentationBody(String session, String keyword) {
-        DocumentationSearchService.DocumentationSearchResult result = documentationSearchService.search(session, keyword);
+    String searchDocumentationBody(List<String> keyWords) {
+        DocumentationSearchService.DocumentationSearchResult result = documentationSearchService.search(keyWords);
         StringBuilder body = new StringBuilder();
-        body.append("Session: ").append(result.session()).append('\n');
         body.append("Repository: ").append(DOCUMENTATION_REPO_OWNER).append('/').append(DOCUMENTATION_REPO_NAME).append('\n');
         body.append("Default branch: ").append(result.defaultBranch()).append('\n');
-        body.append("Keyword: ").append(result.keyword()).append('\n');
+        body.append("Keywords: ").append(String.join(", ", result.keyWords())).append('\n');
         body.append("Documentation files scanned: ").append(result.documentationFilesScanned()).append("\n\n");
 
         if (result.message() != null) {
