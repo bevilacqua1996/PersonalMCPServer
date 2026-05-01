@@ -1,12 +1,12 @@
 # PersonalMCPServer
 
-Streamable MCP server that exposes GitHub-aware tools through a Spring Boot 4 application. The project wires Spring AI's MCP server and a simple `ResponseBodyEmitter`-powered controller so GitHub API responses are streamed directly to the MCP client.
+Streamable MCP server that exposes GitHub-aware tools through a Spring Boot application. The project wires Spring AI's MCP server and a simple `ResponseBodyEmitter`-powered controller so GitHub API responses are streamed directly to the MCP client.
 
 ## Features
 - Registers a Spring AI MCP server with `STREAMABLE` protocol and the `/api/mcp` endpoint so clients can stream tool output in real time.
-- Exposes three MCP tools (`list-repos`, `describe-repo`, and `search-menthoring-documentation`) that call GitHub API endpoints via `RestTemplate` and a `ResponseBodyEmitter`.
+- Exposes three MCP tools (`list-repos`, `describe-repo`, and `menthoring`) that call GitHub API endpoints via `RestTemplate` and a `ResponseBodyEmitter`.
 - Automatically resolves the authenticated GitHub username using the provided token to scope repository lookups to the current user.
-- The documentation search tool scans the public `bevilacqua1996/Menthoring-Documentation` repository and returns text snippets from matching docs.
+- The documentation search tool scans the public `bevilacqua1996/Menthoring-Documentation` repository and returns text snippets from matching docs using up to five keywords.
 
 ## Requirements
 - Java 21 (the Gradle toolchain is configured in `build.gradle`).
@@ -48,12 +48,15 @@ Override the GitHub token without editing the file by passing `-Dgithub.token=TO
 | --- | --- |
 | `GET /tools/repos` | MCP tool `list-repos` streams the authenticated user's repositories. `curl http://localhost:8081/tools/repos` lets you watch the GitHub JSON flow in real time. |
 | `GET /tools/describe?name=<repo>` | MCP tool `describe-repo` streams the repository details for `<repo>` belonging to the authenticated user. |
-| `GET /tools/documentation/search?session=<session>&keyword=<keyword>` | MCP tool `search-menthoring-documentation` scans the `Menthoring-Documentation` repo and streams text excerpts that match `<keyword>`, tagged with `<session>`. |
+| `GET /tools/documentation/search?keyWords=<keyword>&keyWords=<keyword>` | MCP tool `menthoring` scans the `Menthoring-Documentation` repo and streams text excerpts that match up to five keywords. |
 
 Both endpoints return `MediaType.APPLICATION_OCTET_STREAM_VALUE` so the MCP client can process data chunk by chunk. If no GitHub token is configured, the stream immediately sends a reminder and completes.
 
+The documentation search endpoint accepts repeated `keyWords` query parameters and ignores the old `session` field.
+
 ## Testing
 - `./gradlew test` (current tests only verify that the Spring context loads).
+- The documentation search path is covered by tests that exercise the `keyWords` array contract.
 
 ## Packaging
 - `./gradlew clean build` produces the Spring Boot artifact in `build/libs`.
