@@ -25,6 +25,7 @@ replay_pid*
 
 # IDE and build artifacts
 .codex
+.env
 .gradle/
 .idea/
 .vscode/

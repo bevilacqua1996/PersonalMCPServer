@@ -29,7 +29,7 @@ import java.util.Map;
 @Produces(MediaType.APPLICATION_JSON)
 public class McpProtocolResource {
 
-    private static final String PROTOCOL_VERSION = "2024-11-05";
+    private static final String PROTOCOL_VERSION = "2025-11-25";
 
     @Inject
     ObjectMapper objectMapper;
