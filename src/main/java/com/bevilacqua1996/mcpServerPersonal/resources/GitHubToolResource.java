@@ -1,4 +1,4 @@
-package com.bevilacqua1996.mcpServerPersonal;
+package com.bevilacqua1996.mcpServerPersonal.resources;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -13,6 +13,8 @@ import jakarta.ws.rs.core.StreamingOutput;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
+import com.bevilacqua1996.mcpServerPersonal.services.GitHubToolService;
 
 @ApplicationScoped
 @Path("/")

@@ -1,5 +1,7 @@
-package com.bevilacqua1996.mcpServerPersonal;
+package com.bevilacqua1996.mcpServerPersonal.services;
 
+import com.bevilacqua1996.mcpServerPersonal.services.DocumentationSearchService.DocumentationMatch;
+import com.bevilacqua1996.mcpServerPersonal.services.DocumentationSearchService.DocumentationSearchResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;

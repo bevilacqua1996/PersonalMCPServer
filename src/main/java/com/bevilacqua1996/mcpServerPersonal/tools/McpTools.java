@@ -1,4 +1,4 @@
-package com.bevilacqua1996.mcpServerPersonal;
+package com.bevilacqua1996.mcpServerPersonal.tools;
 
 import io.quarkiverse.mcp.server.Tool;
 import io.quarkiverse.mcp.server.ToolArg;
@@ -6,6 +6,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
 import java.util.List;
+
+import com.bevilacqua1996.mcpServerPersonal.services.GitHubToolService;
 
 @ApplicationScoped
 public class McpTools {

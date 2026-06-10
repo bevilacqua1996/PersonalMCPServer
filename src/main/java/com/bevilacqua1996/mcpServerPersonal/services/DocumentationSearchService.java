@@ -1,4 +1,4 @@
-package com.bevilacqua1996.mcpServerPersonal;
+package com.bevilacqua1996.mcpServerPersonal.services;
 
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
