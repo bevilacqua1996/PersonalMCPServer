@@ -30,7 +30,7 @@ dependencies {
     implementation 'io.quarkus:quarkus-rest-jackson'
     implementation 'io.quarkus:quarkus-arc'
 
-    implementation "dev.langchain4j:langchain4j-mcp:${langchain4jMcpVersion}"
+    implementation "io.quarkiverse.mcp:quarkus-mcp-server-http:1.13.0"
 
     testImplementation 'io.quarkus:quarkus-junit5'
     testImplementation 'io.rest-assured:rest-assured'
